@@ -13,15 +13,7 @@ Ce projet regroupe un frontend mixte Vite.js + React servi par NGINX, un backend
 - `kubectl` installé et configuré (command-line de K8s)
 - Images Docker buildées et poussées dans un registre (Docker Hub, GHCR, etc.) ou accessible en local
 
-##  Déploiement Docker Swarm
-
-### 1. Démarrer Docker Swarm
-
-```bash
-docker swarm init
-```
-
-### 2. Construire et pousser les images
+### Construire et pousser les images
 
 ```bash
 # Backend FastAPI
@@ -33,11 +25,19 @@ docker build -t mon_dockerhub_user/projet-infonuagique-frontend:latest ./fronten
 docker push mon_dockerhub_user/projet-infonuagique-frontend:latest
 ```
 
-### 3. Déployer la stack
+##  Déploiement Docker Swarm
+
+### 1. Démarrer Docker Swarm
+
+```bash
+docker swarm init
+```
+
+### 2. Déployer la stack
 ```bash
 docker stack deploy -c docker-compose.swarm.yml mon_projet_stack
 ```
-### 4. Vérifier le déploiement
+### 3. Vérifier le déploiement
 ```bash
 docker stack services mon_projet_stack
 docker stack ps mon_projet_stack
@@ -73,9 +73,22 @@ minikube service frontend -n projet-infonuagique
 minikube service backend -n projet-infonuagique
 ```
 
-### 6. Pour tester en local avec des images non poussées
-```bash
-eval $(minikube docker-env)
-docker build -t projet-infonuagique-backend ./backend
-docker build -t projet-infonuagique-frontend ./frontend
+
+### 6. Obeserver les métriques sur Grafana grâce à Prometheus
+
+### Lancer Prometheus
+ ```bash
+kubectl expose service prometheus-server --type=NodePort --target-port=9090 --port=9090 --name=prometheus-server-ext -n projet-infonuagique
+minikube service prometheus-server-ext -n projet-infonuagique
 ```
+
+### Lancer Grafana
+
+```bash
+kubectl expose service grafana --type=NodePort --target-port=3000 --name=grafana-ext -n projet-infonuagique
+minikube service grafana-ext -n projet-infonuagique
+
+#Récupérer le mot de passe. Utilisateur par défaut:admin.
+kubectl get secret grafana --namespace projet-infonuagique -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
