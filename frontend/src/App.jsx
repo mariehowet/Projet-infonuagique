@@ -5,7 +5,7 @@ function App() {
   const [data, setData] = useState("Chargement...");
   
   useEffect(() => {
-    axios.get("http://localhost:8000/ping")
+    axios.get("/api/ping")
       .then(res => setData(res.data))
       .catch(() => setData("Erreur API"));
   }, []);

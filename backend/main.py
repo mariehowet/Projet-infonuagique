@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import os
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
@@ -14,9 +15,11 @@ app.add_middleware(
     allow_headers=["*"],  # Autoriser tous les headers
 )
 
+# Instrumentation Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # Connexion PostgreSQL
-DB_URL = os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/mydb")
+DB_URL = os.getenv("DATABASE_URL", "postgresql://user:password@postgres:5432/mydb")
 
 def check_db_connection():
     try:
