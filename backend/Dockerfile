@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie du code source
 COPY . .
 
-# Exposition du port FastAPI
+# Exposition du port de l'API
 EXPOSE 8000
 
 # Commande pour démarrer l'API

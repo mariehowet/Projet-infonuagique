@@ -17,12 +17,12 @@ Ce projet regroupe un frontend mixte Vite.js + React servi par NGINX, un backend
 
 ```bash
 # Backend FastAPI
-docker build -t mon_dockerhub_user/projet-infonuagique-backend:latest ./backend
-docker push mon_dockerhub_user/projet-infonuagique-backend:latest
+docker build -t dockermariexmas/projet-infonuagique-backend:latest ./backend
+docker push dockermariexmas/projet-infonuagique-backend:latest
 
 # Frontend NGINX avec Vue + React
-docker build -t mon_dockerhub_user/projet-infonuagique-frontend:latest ./frontend
-docker push mon_dockerhub_user/projet-infonuagique-frontend:latest
+docker build -t dockermariexmas/projet-infonuagique-frontend:latest ./frontend
+docker push dockermariexmas/projet-infonuagique-frontend:latest
 ```
 
 ##  Déploiement Docker Swarm
@@ -44,10 +44,16 @@ docker stack ps mon_projet_stack
 ```
 
 ##  Déploiement Kubernetes
-
+### Prérequis
+```bash
+#Installer Prometheus + Grafana + CDRs
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace projet-infonuagique
+```
 ### 1. Démarrer Minikube (si local)
 ```bash
 minikube start
+# To enable dashboard features addon
+minikube addons enable metrics-server
 ```
 
 ### 2. Créer un namespace (optionnel mais conseillé)
@@ -74,21 +80,24 @@ minikube service backend -n projet-infonuagique
 ```
 
 
-### 6. Obeserver les métriques sur Grafana grâce à Prometheus
+### 6. Observer les métriques
 
-### Lancer Prometheus
+
+#### Lancer Prometheus & Grafana
  ```bash
-kubectl expose service prometheus-server --type=NodePort --target-port=9090 --port=9090 --name=prometheus-server-ext -n projet-infonuagique
-minikube service prometheus-server-ext -n projet-infonuagique
+#kubectl expose service prometheus-operated --type=NodePort --target-port=9090 --port=9090 --name=prometheus-operated-ext -n projet-infonuagique
+minikube service prometheus-grafana -n projet-infonuagique
 ```
 
-### Lancer Grafana
-
+#### Grafana
 ```bash
-kubectl expose service grafana --type=NodePort --target-port=3000 --name=grafana-ext -n projet-infonuagique
-minikube service grafana-ext -n projet-infonuagique
+#kubectl expose service prometheus-grafana --type=NodePort --target-port=3000 --name=prometheus-grafana-ext -n projet-infonuagique
 
 #Récupérer le mot de passe. Utilisateur par défaut:admin.
-kubectl get secret grafana --namespace projet-infonuagique -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+kubectl get secret prometheus-grafana --namespace projet-infonuagique -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
+#### Lancer le dashboard Kubernetes
+```bash
+minikube dashboard
+```

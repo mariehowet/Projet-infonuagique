@@ -11,6 +11,12 @@ services:
       - DATABASE_URL=postgresql://user:password@postgres:5432/mydb
     networks:
       - app_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
 
   frontend:
     image: dockermariexmas/projet-infonuagique-frontend
@@ -27,17 +33,26 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: mydb
+    configs:
+      - source: init_sql_config
+        target: /docker-entrypoint-initdb.d/init.sql
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
     ports:
       - "5432:5432"
+    deploy:
+      placement:
+        constraints: 
+        - node.role == manager 
 
   prometheus:
     image: prom/prometheus
     volumes:
-      - ../../backend/prometheus.yml:/etc/prometheus/prometheus.yml
+      - type: bind
+        source: ../../backend/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
@@ -60,5 +75,11 @@ networks:
   app_network:
     
 volumes:
-  db_data:
   grafana-storage:
+  postgres_data:
+
+configs:
+  init_sql_config:
+    file: ../../backend/init.sql
+    name: init_sql_config
+  
