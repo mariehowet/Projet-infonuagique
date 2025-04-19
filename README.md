@@ -23,17 +23,22 @@ docker push dockermariexmas/projet-infonuagique-backend:latest
 # Frontend NGINX avec Vue + React
 docker build -t dockermariexmas/projet-infonuagique-frontend:latest ./frontend
 docker push dockermariexmas/projet-infonuagique-frontend:latest
+
+# Locust
+docker build -t dockermariexmas/projet-infonuagique-locust:latest ./test
+docker push dockermariexmas/projet-infonuagique-locust:latest
 ```
 
 ##  Déploiement Docker Swarm
 
 ### 1. Démarrer Docker Swarm
-
 ```bash
 docker swarm init
 ```
 
 ### 2. Déployer la stack
+Se placer dans le dossier` swarm/`
+
 ```bash
 docker stack deploy -c docker-compose.swarm.yml mon_projet_stack
 ```
@@ -43,12 +48,16 @@ docker stack services mon_projet_stack
 docker stack ps mon_projet_stack
 ```
 
-##  Déploiement Kubernetes
-### Prérequis
+### 4. Quitter Docker Swarm
 ```bash
-#Installer Prometheus + Grafana + CDRs
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace projet-infonuagique
+# Supprimer le stack
+docker stack rm mon_projet_stack
+# Fermer docker swarm
+docker swarm leave --force
 ```
+
+##  Déploiement Kubernetes
+
 ### 1. Démarrer Minikube (si local)
 ```bash
 minikube start
@@ -56,13 +65,16 @@ minikube start
 minikube addons enable metrics-server
 ```
 
-### 2. Créer un namespace (optionnel mais conseillé)
- ```bash
+### 2. Installer les prérequis
+```bash
+ #Créer un namespace (optionnel mais conseillé)
  kubectl create namespace projet-infonuagique
+#Installer Prometheus + Grafana + CDRs
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace projet-infonuagique
 ```
 
 ### 3. Déployer les ressources Kubernetes
-Se placer dans le dossier` k8s/`
+Se placer dans le dossier `k8s/`
 
 ```bash
 kubectl apply -f . -n projet-infonuagique
@@ -79,9 +91,7 @@ minikube service frontend -n projet-infonuagique
 minikube service backend -n projet-infonuagique
 ```
 
-
 ### 6. Observer les métriques
-
 
 #### Lancer Prometheus & Grafana
  ```bash
@@ -95,6 +105,11 @@ minikube service prometheus-grafana -n projet-infonuagique
 
 #Récupérer le mot de passe. Utilisateur par défaut:admin.
 kubectl get secret prometheus-grafana --namespace projet-infonuagique -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+### Locust
+```bash
+minikube service locust -n projet-infonuagique
 ```
 
 #### Lancer le dashboard Kubernetes
