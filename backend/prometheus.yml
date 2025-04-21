@@ -2,6 +2,14 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  - job_name: "backend"
+  - job_name: "backend" # Exporter les métriques de l'application backend
     static_configs:
       - targets: ["backend:8000"]
+  - job_name: "cAdvisor" # Exporter les métriques de performance des conteneurs
+    static_configs:
+      - targets: ["cadvisor:8080"]
+  - job_name: "locust-exporter" # Exporter les métriques de Locust vers Prometheus
+    static_configs:
+      - targets: ["locust-exporter:9646"]
+
+  

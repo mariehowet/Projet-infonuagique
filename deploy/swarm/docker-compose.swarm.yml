@@ -47,6 +47,23 @@ services:
         constraints: 
         - node.role == manager 
 
+  cadvisor: # Exporter les métriques de performance des conteneurs
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      mode: global # Exécute cAdvisor sur chaque nœud du cluster
+      restart_policy:
+        condition: any
+
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -82,6 +99,16 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
+
+
+  locust-exporter: # Exporter les métriques de Locust vers Prometheus
+    image: containersol/locust_exporter
+    ports:
+      - "9646:9646"
+    environment:
+      - LOCUST_HOST=http://locust:8089
+    networks:
+      - app_network
     
 networks:
   app_network:
